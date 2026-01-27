@@ -1,4 +1,5 @@
 <?php
+
 /**
  *------
  * BGA framework: Gregory Isabelli & Emmanuel Colin & BoardGameArena
@@ -14,12 +15,14 @@
  *
  * In this PHP file, you are going to defines the rules of the game.
  */
+
 declare(strict_types=1);
 
 namespace Bga\Games\FiveMinuteDungeonDev;
 
 use Bga\Games\FiveMinuteDungeonDev\States\PlayerTurn;
 use Bga\GameFramework\Components\Counters\PlayerCounter;
+use Bga\GameFramework\Components\Deck;
 
 class Game extends \Bga\GameFramework\Table
 {
@@ -41,17 +44,83 @@ class Game extends \Bga\GameFramework\Table
         parent::__construct();
         $this->initGameStateLabels([]); // mandatory, even if the array is empty
 
+        $this->greenDeck = $this->deckFactory->createDeck("green_deck");
+        $this->redDeck = $this->deckFactory->createDeck("red_deck");
+        $this->yellowDeck = $this->deckFactory->createDeck("yellow_deck");
+        $this->blueDeck = $this->deckFactory->createDeck("blue_deck");
+        $this->purpleDeck = $this->deckFactory->createDeck("purple_deck");
+        $this->monsterDeck = $this->deckFactory->createDeck("monster_deck");
+
         $this->playerEnergy = $this->bga->counterFactory->createPlayerCounter('energy');
 
         self::$CARD_TYPES = [
-            1 => [
-                "card_name" => clienttranslate('Troll'), // ...
+            'sword' => [
+                'name' => clienttranslate('Sword'),
+                'attributes' => ['sword']
             ],
-            2 => [
-                "card_name" => clienttranslate('Goblin'), // ...
+            'scroll' => [
+                'name' => clienttranslate('Scroll'),
+                'attributes' => ['scroll']
             ],
-            // ...
+            'shield' => [
+                'name' => clienttranslate('Shield'),
+                'attributes' => ['shield']
+            ],
+            'arrow' => [
+                'name' => clienttranslate('Arrow'),
+                'attributes' => ['arrow']
+            ],
+            'jump' => [
+                'name' => clienttranslate('Jump'),
+                'attributes' => ['jump']
+            ],
+            'scroll_double' => [
+                'name' => clienttranslate('Double Scroll'),
+                'attributes' => ['scroll', 'scroll']
+            ],
+            'jump_double' => [
+                'name' => clienttranslate('Double Jump'),
+                'attributes' => ['jump', 'jump']
+            ],
+            'sword_double' => [
+                'name' => clienttranslate('Double Sword'),
+                'attributes' => ['sword', 'sword']
+            ],
+            'shield_double' => [
+                'name' => clienttranslate('Double Shield'),
+                'attributes' => ['shield', 'shield']
+            ],
+            'arrow_double' => [
+                'name' => clienttranslate('Double Arrow'),
+                'attributes' => ['arrow', 'arrow']
+            ],
+            'sword_shield' => [
+                'name' => clienttranslate('Sword Shield'),
+                'attributes' => ['sword', 'shield']
+            ],
+            'sword_arrow' => [
+                'name' => clienttranslate('Sword Arrow'),
+                'attributes' => ['sword', 'arrow']
+            ],
+            'sword_jump' => [
+                'name' => clienttranslate('Sword Jump'),
+                'attributes' => ['sword', 'jump']
+            ],
+            'sword_scroll' => [
+                'name' => clienttranslate('Sword Scroll'),
+                'attributes' => ['sword', 'scroll']
+            ],
         ];
+
+        // self::$CARD_TYPES = [
+        //     1 => [
+        //         "card_name" => clienttranslate('Troll'), // ...
+        //     ],
+        //     2 => [
+        //         "card_name" => clienttranslate('Goblin'), // ...
+        //     ],
+        //     // ...
+        // ];
 
         /* example of notification decorator.
         // automatically complete notification args when needed
@@ -99,21 +168,21 @@ class Game extends \Bga\GameFramework\Table
      */
     public function upgradeTableDb($from_version)
     {
-//       if ($from_version <= 1404301345)
-//       {
-//            // ! important ! Use `DBPREFIX_<table_name>` for all tables
-//
-//            $sql = "ALTER TABLE `DBPREFIX_xxxxxxx` ....";
-//            $this->applyDbUpgradeToAllDB( $sql );
-//       }
-//
-//       if ($from_version <= 1405061421)
-//       {
-//            // ! important ! Use `DBPREFIX_<table_name>` for all tables
-//
-//            $sql = "CREATE TABLE `DBPREFIX_xxxxxxx` ....";
-//            $this->applyDbUpgradeToAllDB( $sql );
-//       }
+        //       if ($from_version <= 1404301345)
+        //       {
+        //            // ! important ! Use `DBPREFIX_<table_name>` for all tables
+        //
+        //            $sql = "ALTER TABLE `DBPREFIX_xxxxxxx` ....";
+        //            $this->applyDbUpgradeToAllDB( $sql );
+        //       }
+        //
+        //       if ($from_version <= 1405061421)
+        //       {
+        //            // ! important ! Use `DBPREFIX_<table_name>` for all tables
+        //
+        //            $sql = "CREATE TABLE `DBPREFIX_xxxxxxx` ....";
+        //            $this->applyDbUpgradeToAllDB( $sql );
+        //       }
     }
 
     /*
@@ -191,10 +260,162 @@ class Game extends \Bga\GameFramework\Table
 
         // TODO: Setup the initial game situation here.
 
+        $this->createBlueDeck();
+        $this->createRedDeck();
+        $this->createPurpleDeck();
+        $this->createGreenDeck();
+        $this->createYellowDeck();
         // Activate first player once everything has been initialized and ready.
         $this->activeNextPlayer();
 
         return PlayerTurn::class;
+    }
+
+    private function createBlueDeck()
+    {
+        $cards = [];
+
+        // Swords (Force) – 3
+        $cards[] = ['type' => 'sword', 'type_arg' => 0, 'nbr' => 3];
+
+        // Scrolls (Magie) – 9
+        $cards[] = ['type' => 'scroll', 'type_arg' => 0, 'nbr' => 9];
+
+        // Shields (Defense) – 5
+        $cards[] = ['type' => 'shield', 'type_arg' => 0, 'nbr' => 5];
+
+        // Arrows (Distance) – 7
+        $cards[] = ['type' => 'arrow', 'type_arg' => 0, 'nbr' => 7];
+
+        // Jumps (Endurance) – 6
+        $cards[] = ['type' => 'jump', 'type_arg' => 0, 'nbr' => 6];
+
+        // Double Scroll – 2
+        $cards[] = ['type' => 'scroll_double', 'type_arg' => 1, 'nbr' => 2];
+
+        // Création et mélange
+        $this->blueDeck->createCards($cards, 'deck');
+        $this->blueDeck->shuffle('deck');
+    }
+
+    private function createYellowDeck()
+    {
+        $cards = [];
+
+        // Swords (Force) – 6
+        $cards[] = ['type' => 'sword', 'type_arg' => 0, 'nbr' => 6];
+
+        // Scrolls (Magie) – 8
+        $cards[] = ['type' => 'scroll', 'type_arg' => 0, 'nbr' => 8];
+
+        // Shields (Defense) – 9
+        $cards[] = ['type' => 'shield', 'type_arg' => 0, 'nbr' => 9];
+
+        // Arrows (Distance) – 6
+        $cards[] = ['type' => 'arrow', 'type_arg' => 0, 'nbr' => 6];
+
+        // Jumps (Endurance) – 3
+        $cards[] = ['type' => 'jump', 'type_arg' => 0, 'nbr' => 3];
+
+        // Double shield – 2
+        $cards[] = ['type' => 'shield_double', 'type_arg' => 1, 'nbr' => 2];
+
+        // Création et mélange
+        $this->yellowDeck->createCards($cards, 'deck');
+        $this->yellowDeck->shuffle('deck');
+    }
+
+    private function createRedDeck()
+    {
+        $cards = [];
+
+        // Swords (Force) – 5
+        $cards[] = ['type' => 'sword', 'type_arg' => 0, 'nbr' => 5];
+
+        // Scrolls (Magie) – 3
+        $cards[] = ['type' => 'scroll', 'type_arg' => 0, 'nbr' => 3];
+
+        // Shields (Defense) – 7
+        $cards[] = ['type' => 'shield', 'type_arg' => 0, 'nbr' => 7];
+
+        // Arrows (Distance) – 5
+        $cards[] = ['type' => 'arrow', 'type_arg' => 0, 'nbr' => 5];
+
+        // Jumps (Endurance) – 6
+        $cards[] = ['type' => 'jump', 'type_arg' => 0, 'nbr' => 6];
+
+        // Double Sword – 2
+        $cards[] = ['type' => 'sword_double', 'type_arg' => 1, 'nbr' => 2];
+
+        // Double Sword Arrow – 2
+        $cards[] = ['type' => 'sword_arrow', 'type_arg' => 1, 'nbr' => 2];
+
+        // Double Sword Jump – 2
+        $cards[] = ['type' => 'sword_jump', 'type_arg' => 1, 'nbr' => 2];
+        
+        // Double Sword Scroll – 2
+        $cards[] = ['type' => 'sword_scroll', 'type_arg' => 1, 'nbr' => 2];
+        
+        // Double Sword Shield – 2
+        $cards[] = ['type' => 'sword_shield', 'type_arg' => 1, 'nbr' => 2];
+
+        // Création et mélange
+        $this->redDeck->createCards($cards, 'deck');
+        $this->redDeck->shuffle('deck');
+    }
+
+    private function createPurpleDeck()
+    {
+        $cards = [];
+
+        // Swords (Force) – 7
+        $cards[] = ['type' => 'sword', 'type_arg' => 0, 'nbr' => 7];
+
+        // Scrolls (Magie) – 6
+        $cards[] = ['type' => 'scroll', 'type_arg' => 0, 'nbr' => 6];
+
+        // Shields (Defense) – 5
+        $cards[] = ['type' => 'shield', 'type_arg' => 0, 'nbr' => 5];
+
+        // Arrows (Distance) – 3
+        $cards[] = ['type' => 'arrow', 'type_arg' => 0, 'nbr' => 3];
+
+        // Jumps (Endurance) – 7
+        $cards[] = ['type' => 'jump', 'type_arg' => 0, 'nbr' => 7];
+
+        // Double jump – 3
+        $cards[] = ['type' => 'jump_double', 'type_arg' => 1, 'nbr' => 3];
+
+        // Création et mélange
+        $this->purpleDeck->createCards($cards, 'deck');
+        $this->purpleDeck->shuffle('deck');
+    }
+
+    private function createGreenDeck()
+    {
+        $cards = [];
+
+        // Swords (Force) – 4
+        $cards[] = ['type' => 'sword', 'type_arg' => 0, 'nbr' => 4];
+
+        // Scrolls (Magie) – 4
+        $cards[] = ['type' => 'scroll', 'type_arg' => 0, 'nbr' => 4];
+
+        // Shields (Defense) – 3
+        $cards[] = ['type' => 'shield', 'type_arg' => 0, 'nbr' => 3];
+
+        // Arrows (Distance) – 9
+        $cards[] = ['type' => 'arrow', 'type_arg' => 0, 'nbr' => 9];
+
+        // Jumps (Endurance) – 7
+        $cards[] = ['type' => 'jump', 'type_arg' => 0, 'nbr' => 7];
+
+        // Double arrow – 2
+        $cards[] = ['type' => 'arrow_double', 'type_arg' => 1, 'nbr' => 2];
+
+        // Création et mélange
+        $this->greenDeck->createCards($cards, 'deck');
+        $this->greenDeck->shuffle('deck');
     }
 
     /**
@@ -202,14 +423,16 @@ class Game extends \Bga\GameFramework\Table
      * Here, jump to a state you want to test (by default, jump to next player state)
      * You can trigger it on Studio using the Debug button on the right of the top bar.
      */
-    public function debug_goToState(int $state = 3) {
+    public function debug_goToState(int $state = 3)
+    {
         $this->gamestate->jumpToState($state);
     }
 
     /**
      * Another example of debug function, to easily test the zombie code.
      */
-    public function debug_playOneMove() {
+    public function debug_playOneMove()
+    {
         $this->bga->debug->playUntil(fn(int $count) => $count == 1);
     }
 
